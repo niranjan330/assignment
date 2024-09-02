@@ -1,0 +1,37 @@
+Assignment 1:
+
+ChangeCount = 
+VAR CurrentID = 'MyTable'[Current ID]
+VAR OldID = 'MyTable'[Old ID]
+RETURN
+    COUNTROWS(
+        FILTER(
+            'MyTable',
+            'MyTable'[Current ID] = CurrentID &&
+            'MyTable'[Old ID] <> BLANK()
+        )
+    )
+Description = 
+SWITCH(
+    TRUE(),
+    'MyTable'[ChangeCount] = 0, "Initial ID",
+    'MyTable'[ChangeCount] = 1, "1st Change",
+    'MyTable'[ChangeCount] = 2, "2nd Change",
+    'MyTable'[ChangeCount] = 3, "3rd Change",
+    "Further Changes"
+)
+InitialID = 
+VAR CurrentID = 'MyTable'[Current ID]
+RETURN
+    CALCULATE(
+        MIN('MyTable'[Current ID]),
+        FILTER(
+            'MyTable',
+            'MyTable'[Current ID] = CurrentID
+        )
+    )
+TotalChanges = 
+CALCULATE(
+    SUM('MyTable'[ChangeCount]),
+    ALLEXCEPT('MyTable', 'MyTable'[InitialID])
+)
