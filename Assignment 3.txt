@@ -1,0 +1,41 @@
+
+let
+    Source = Excel.Workbook(File.Contents("Tenant Score.xlsb"), null, true),
+    Data_Sheet = Source{[Item="Sheet1",Kind="Sheet"]}[Data],
+    PromotedHeaders = Table.PromoteHeaders(Data_Sheet, [PromoteAllScalars=true]),
+    ChangedType = Table.TransformColumnTypes(PromotedHeaders,{{"Tenant_ID", Int64.Type}, {"Score", type number}, {"Date", type date}}),
+    RemoveDuplicates = Table.Distinct(ChangedType, {"Tenant_ID", "Date"}),
+    GroupedRows = Table.Group(RemoveDuplicates, {"Tenant_ID", "Date"}, {{"MaxScore", each List.Max([Score]), type number}})
+    MergedTables = Table.NestedJoin(RemoveDuplicates, {"Tenant_ID", "Date"}, GroupedRows, {"Tenant_ID", "Date"}, "Merged", JoinKind.LeftOuter),
+    ExpandedColumns = Table.ExpandTableColumn(MergedTables, "Merged", {"MaxScore"}, {"MaxScore"}),
+    FinalTable = Table.SelectRows(ExpandedColumns, each [Score] = [MaxScore])
+in
+    FinalTable
+
+DateTable = 
+ADDCOLUMNS (
+    CALENDAR ( MIN ( 'Table'[Date] ), MAX ( 'Table'[Date] ) ),
+    "Year", YEAR ( [Date] ),
+    "Month", FORMAT ( [Date], "MMMM" ),
+    "MonthNumber", MONTH ( [Date] ),
+    "Quarter", "Q" & QUARTER ( [Date] )
+)
+
+LastScore = 
+VAR CurrentTenant = [Tenant_ID]
+VAR CurrentDate = [Date]
+RETURN
+CALCULATE(
+    MAX('Table'[Score]),
+    FILTER(
+        'Table',
+        'Table'[Tenant_ID] = CurrentTenant &&
+        'Table'[Date] <= CurrentDate
+    )
+)
+
+MaxScore = 
+CALCULATE(
+    MAX('Table'[Score]),
+    ALLEXCEPT('Table', 'Table'[Tenant_ID], 'Table'[Date])
+)
