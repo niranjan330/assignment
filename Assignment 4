@@ -1,0 +1,16 @@
+Time Interval = 
+VAR ArrivalMinutes = HOUR('Table'[Arrive]) * 60 + MINUTE('Table'[Arrive])
+VAR RoundedMinutes = FLOOR(ArrivalMinutes, 15)
+VAR HourPart = QUOTIENT(RoundedMinutes, 60)
+VAR MinutePart = MOD(RoundedMinutes, 60)
+VAR EndMinutePart = MinutePart + 15
+VAR EndHourPart = IF(EndMinutePart >= 60, HourPart + 1, HourPart)
+VAR AdjustedEndMinutePart = IF(EndMinutePart >= 60, EndMinutePart - 60, EndMinutePart)
+RETURN 
+    FORMAT(HourPart, "00") & ":" & FORMAT(MinutePart, "00") & "-" & 
+    FORMAT(EndHourPart, "00") & ":" & FORMAT(AdjustedEndMinutePart, "00")
+Orders Count = 
+CALCULATE(
+    COUNTROWS('Table'),
+    ALLEXCEPT('Table', 'Table'[Time Interval])
+)
