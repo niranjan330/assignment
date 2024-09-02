@@ -1,0 +1,19 @@
+Status = 
+IF(
+    ISBLANK('Table'[DateEnd]) || 'Table'[DateEnd] >= TODAY(),
+    "Active",
+    "Inactive"
+)
+Active Employees Count = 
+CALCULATE(
+    COUNTROWS('Table'),
+    'Table'[Status] = "Active"
+)
+Inactive Employees Count = 
+CALCULATE(
+    COUNTROWS('Table'),
+    'Table'[Status] = "Inactive"
+)
+
+DateTable = 
+CALENDAR(MIN('Table'[DateStart]), MAX('Table'[DateEnd]))
